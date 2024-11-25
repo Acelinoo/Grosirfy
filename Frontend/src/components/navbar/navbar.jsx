@@ -9,10 +9,8 @@ const Navbar = () => {
     <nav className="bg-white py-4 shadow-md sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 flex justify-between items-center">
         {/* Logo */}
-        <div className="flex items-center">
-          <h1 className="text-3xl font-bold text-gray-800 -ml-[140px]">
-            Grosirfy
-          </h1>
+        <div className="flex items-center -ml-[130px]">
+          <h1 className="text-3xl font-bold text-gray-800 ">Grosirfy</h1>
         </div>
 
         {/* Search Bar */}
