@@ -1,7 +1,9 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Home from "./pages/home";
+import Home from "./pages/landingPage";
 import Daftar from "./pages/daftar";
 import Login from "./pages/login";
+import AOS from "aos";
+import "aos/dist/aos.css"; // import style AOS
 const App = () => {
   return (
     <Router>
@@ -14,3 +16,7 @@ const App = () => {
   );
 };
 export default App;
+AOS.init({
+  duration: 1000, // durasi animasi dalam milidetik
+  once: true, // animasi hanya dijalankan sekali
+});

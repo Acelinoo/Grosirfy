@@ -1,10 +1,13 @@
 import React from "react";
-// import Navbars from "../components/navbar";
-
+import BannerGrosirfy from "../components/banner/bannerGrosirfy";
+import FormLogin from "../components/form/formLogin/formLogin";
 const Login = () => {
   return (
     <>
-      {/* <Navbars /> */}
+      <div className="flex h-screen ">
+        < BannerGrosirfy />
+        <FormLogin />
+      </div>
     </>
   );
 };
