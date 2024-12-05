@@ -1,393 +1,301 @@
 import React, { useState, useEffect } from "react";
-import Navbar from "../components/navbar/Navbar";
-import Sidebar from "../components/sideBar/Sidebar";
-import { CiCirclePlus } from "react-icons/ci";
 import { PiPencilLineBold } from "react-icons/pi";
+import Navbar from "../components/navbar/navbar";
+import Sidebar from "../components/sideBar/sidebar";
 
-// Generate 50 products
-const generateProducts = () => {
-  const products = [];
-  for (let i = 1; i <= 20; i++) {
-    products.push({
-      id: i,
-      name: `Produk ${String.fromCharCode(64 + i)}`, // Creates names like Produk A, Produk B, etc.
-      price: `Rp ${100000 * i}`,
-      quantity: 50 + i,
-      entryDate: `2024-${String(i).padStart(2, "0")}-01`,
-      expirationDate: `2025-${String(i).padStart(2, "0")}-01`,
-    });
-  }
-  return products;
-};
-
+// Main Component
 const Home = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isLowStockModalOpen, setIsLowStockModalOpen] = useState(false);
   const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [currentProduct, setCurrentProduct] = useState(null);
   const [newProduct, setNewProduct] = useState({
     name: "",
     price: "",
-    quantity: "",
+    quantity: 0,
     entryDate: "",
     expirationDate: "",
   });
-  const [currentPage, setCurrentPage] = useState(0); // Track the current page
-  const [products, setProducts] = useState(generateProducts()); // Store products
+  const [products, setProducts] = useState([
+    {
+      name: "Produk A",
+      price: "Rp50.000",
+      entryDate: "2024-11-30",
+      quantity: 3,
+      expirationDate: "2024-11-29",
+    },
+    {
+      name: "Produk B",
+      price: "Rp30.000",
+      entryDate: "2024-12-01",
+      quantity: 6,
+      expirationDate: "2024-12-10",
+    },
+  ]);
 
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
+  // State for real-time date
+  const [currentDate, setCurrentDate] = useState("");
+
+  // Update date every second
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = new Date();
+      const formattedDate = now.toLocaleDateString("id-ID", {
+        weekday: "long", // full weekday name (e.g., "Senin")
+        day: "numeric", // day of the month (e.g., "2")
+        month: "long", // full month name (e.g., "Desember")
+        year: "numeric", // full year (e.g., "2024")
+      });
+      setCurrentDate(formattedDate);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setNewProduct({ ...newProduct, [name]: value });
   };
 
-  const openEditModal = (product) => {
-    setSelectedProduct(product);
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setSelectedProduct(null);
-  };
-
-  const handleEditProduct = (e) => {
-    e.preventDefault();
-    closeModal();
-  };
-
-  const handleAddProduct = (e) => {
-    e.preventDefault();
-    const newProductData = {
-      ...newProduct,
-      id: products.length + 1, // Assign a new ID based on current products length
-    };
-    setProducts([...products, newProductData]);
-    setIsAddProductModalOpen(false); // Close the modal after adding
+  const handleAddProduct = () => {
+    setProducts([...products, newProduct]);
     setNewProduct({
       name: "",
       price: "",
-      quantity: "",
+      quantity: 0,
       entryDate: "",
       expirationDate: "",
-    }); // Clear form fields
+    });
+    setIsAddProductModalOpen(false);
   };
 
-  // Handle Low Stock Warning
-  const openLowStockModal = (product) => {
-    setSelectedProduct(product);
-    setIsLowStockModalOpen(true);
+  const handleEditProduct = () => {
+    const updatedProducts = [...products];
+    updatedProducts[currentProduct.index] = currentProduct;
+    setProducts(updatedProducts);
+    setIsEditModalOpen(false);
   };
 
-  const closeLowStockModal = () => {
-    setIsLowStockModalOpen(false);
-    setSelectedProduct(null);
-  };
-
-  // Handle Expiration Date Warning
-  const checkExpirationWarning = (expirationDate) => {
-    const today = new Date().toISOString().split("T")[0]; // Get today's date in YYYY-MM-DD format
-    return expirationDate === today;
-  };
-
-  // Paginate products (20 per page)
-  const productsPerPage = 20;
-  const startIndex = currentPage * productsPerPage;
-  const currentProducts = products.slice(
-    startIndex,
-    startIndex + productsPerPage
-  );
-
-  const nextPage = () => {
-    if ((currentPage + 1) * productsPerPage < products.length) {
-      setCurrentPage(currentPage + 1);
-    }
-  };
-
-  const prevPage = () => {
-    if (currentPage > 0) {
-      setCurrentPage(currentPage - 1);
-    }
-  };
-
-  // Function to delete product
-  const handleDeleteProduct = (productId) => {
-    setProducts(products.filter((product) => product.id !== productId));
-    closeModal(); // Close the modal after deletion
+  const handleEditClick = (index) => {
+    setCurrentProduct({ ...products[index], index });
+    setIsEditModalOpen(true);
   };
 
   return (
-    <>
-      <div className="relative flex">
-        {/* Sidebar */}
-        <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
+    <div className="">
+      {/* Sidebar Component */}
+      <Sidebar
+        isOpen={isSidebarOpen}
+        toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+      />
+      <div>
+        <div
+          className={`p-6 bg-gray-100 min-h-screen ml-0 sm:ml-64 transition-all duration-300`}
+        >
+          <Navbar
+            toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+            lowStockOrExpiredProducts={products.filter(
+              (product) =>
+                product.quantity <= 5 ||
+                new Date(product.expirationDate) <= new Date()
+            )}
+          />
+          <div className="bg-white shadow rounded-md p-4 flex justify-between items-center">
+            <div className="flex flex-col">
+              <h1 className="text-lg font-bold mb-2">Daftar Produk</h1>
+              {currentDate}
+            </div>
+            {/* Real-time date/time display */}
 
-        {/* Main Content */}
-        <div className="w-full">
-          {/* Navbar */}
-          <Navbar isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
-
-          {/* Page Content */}
-          <main
-            className={`transition-transform duration-300 ${
-              isSidebarOpen ? "ml-64" : "ml-0"
-            }`}
-          >
-            <div className="p-8 flex flex-col">
-              <h1 className="font-bold text-2xl">Semua Produk</h1>
-
-              <button
-                onClick={() => setIsAddProductModalOpen(true)}
-                className="w-[170px] h-[40px] mt-2 text-center bg-[#1ABC9C] text-white font-semibold py-2.2 px-4 rounded-lg flex items-center gap-2 transform transition-all duration-200 ease-in-out hover:bg-[#16A085] hover:scale-105 active:scale-95"
-              >
-                <CiCirclePlus />
-                Tambah Produk
-              </button>
-
-              {/* Product Cards */}
-              <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {currentProducts.map((product) => (
-                  <div
-                    key={product.id}
-                    className={`bg-white shadow-lg rounded-lg p-4 ${
-                      product.quantity < 5 ? "border-2 border-red-500" : ""
+            <button
+              onClick={() => setIsAddProductModalOpen(true)}
+              className="bg-[#1ABC9C] text-white px-4 py-2 rounded-md hover:bg-[#16A085]"
+            >
+              Tambah Produk
+            </button>
+          </div>
+          <table className="table-auto w-full text-sm text-left text-gray-500 mt-4">
+            <thead className="text-xs text-white uppercase bg-[#2F3A4B]">
+              <tr>
+                <th className="px-6 py-3">Nama Produk</th>
+                <th className="px-6 py-3">Harga Barang</th>
+                <th className="px-6 py-3">Stok Barang</th>
+                <th className="px-6 py-3">Tanggal Masuk</th>
+                <th className="px-6 py-3">Tanggal Kadaluarsa</th>
+                <th className="px-6 py-3">Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {products.map((product, index) => (
+                <tr key={index} className="bg-white border-b">
+                  <td className="px-6 py-4">{product.name}</td>
+                  <td className="px-6 py-4">{product.price}</td>
+                  <td
+                    className={`px-6 py-4 ${
+                      product.quantity <= 5 ? "text-red-500" : "text-green-500"
                     }`}
                   >
-                    <div className="flex justify-between items-center">
-                      <h2 className="text-xl font-semibold">{product.name}</h2>
-                      <PiPencilLineBold
-                        className="text-gray-600 cursor-pointer hover:text-[#1ABC9C]"
-                        onClick={() => openEditModal(product)}
-                      />
-                    </div>
-                    <p className="text-center text-lg text-green-600">
-                      {product.price}
-                    </p>
-                    <p className="text-center text-sm text-gray-500 mt-2">
-                      Jumlah: {product.quantity}
-                    </p>
+                    {product.quantity}
+                  </td>
+                  <td className="px-6 py-4">{product.entryDate}</td>
+                  <td className="px-6 py-4">{product.expirationDate}</td>
+                  <td className="px-6 py-4">
+                    <button
+                      onClick={() => handleEditClick(index)}
+                      className="text-[#1ABC9C] hover:text-[#16A085]"
+                    >
+                      <PiPencilLineBold size={16} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
 
-                    {/* Stock Warning */}
-                    {product.quantity < 5 && (
-                      <button
-                        onClick={() => openLowStockModal(product)}
-                        className="mt-2 text-center text-red-500 font-semibold border px-4 py-2 rounded-lg w-full bg-red-100 hover:bg-red-200"
-                      >
-                        Stok Anda Hampir Habis
-                      </button>
-                    )}
-
-                    {/* Expiration Date Warning */}
-                    {checkExpirationWarning(product.expirationDate) && (
-                      <div className="mt-2 text-center text-red-500 font-semibold">
-                        Peringatan! Produk ini kadaluarsa hari ini!
-                      </div>
-                    )}
-
-                    {/* Small Table for Entry Date and Expiration Date */}
-                    <div className="mt-4">
-                      <table className="w-full text-sm">
-                        <tbody>
-                          <tr>
-                            <td className="py-1 text-gray-600 font-medium">
-                              Tanggal Masuk:
-                            </td>
-                            <td className="py-1 text-gray-800">
-                              {product.entryDate}
-                            </td>
-                          </tr>
-                          <tr>
-                            <td className="py-1 text-gray-600 font-medium">
-                              Tanggal Kadaluarsa:
-                            </td>
-                            <td className="py-1 text-gray-800">
-                              {product.expirationDate}
-                            </td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Pagination Buttons */}
-              <div className="flex justify-between items-center mt-4">
-                <button
-                  onClick={prevPage}
-                  className="px-4 py-2 bg-gray-400 text-white rounded-md hover:bg-gray-500"
-                  disabled={currentPage === 0}
-                >
-                  Sebelumnya
-                </button>
-                <button
-                  onClick={nextPage}
-                  className="px-4 py-2 bg-[#1ABC9C] text-white rounded-md hover:bg-[#16A085]"
-                  disabled={
-                    (currentPage + 1) * productsPerPage >= products.length
-                  }
-                >
-                  Selanjutnya
-                </button>
-              </div>
-            </div>
-          </main>
-        </div>
-      </div>
-
-      {/* Modal for Low Stock Warning */}
-      {isLowStockModalOpen && selectedProduct && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white p-8 rounded-lg w-96">
-            <h2 className="text-xl font-semibold text-red-500 mb-4">
-              Peringatan Stok Hampir Habis!
-            </h2>
-            <p className="text-gray-700 mb-4">
-              Stok untuk produk{" "}
-              <span className="font-semibold">{selectedProduct.name}</span>{" "}
-              hampir habis. Tersisa hanya {selectedProduct.quantity} unit lagi.
-            </p>
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={closeLowStockModal}
-                className="bg-gray-500 text-white px-4 py-2 rounded-md"
-              >
-                Tutup
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal for Editing Product */}
-      {isModalOpen && selectedProduct && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white p-8 rounded-lg w-96">
-            <h2 className="text-xl font-semibold mb-4">Edit Produk</h2>
-            <form onSubmit={handleEditProduct}>
-              <div className="mb-4">
-                <label className="block text-sm font-medium">Nama Produk</label>
+          {/* Modal Add Product */}
+          {isAddProductModalOpen && (
+            <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center">
+              <div className="bg-white p-8 rounded-lg w-96">
+                <h2 className="text-xl font-semibold mb-4">Tambah Produk</h2>
                 <input
                   type="text"
-                  className="w-full p-2 border rounded-md"
-                  value={selectedProduct.name}
-                  readOnly
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium">Harga</label>
-                <input
-                  type="text"
-                  className="w-full p-2 border rounded-md"
-                  value={selectedProduct.price}
-                  readOnly
-                />
-              </div>
-              <div className="flex justify-end gap-2">
-                <button
-                  onClick={() => handleDeleteProduct(selectedProduct.id)}
-                  className="bg-red-500 text-white px-4 py-2 rounded-md"
-                >
-                  Hapus
-                </button>
-                <button
-                  type="submit"
-                  className="bg-green-500 text-white px-4 py-2 rounded-md"
-                >
-                  Simpan
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Modal for Adding Product */}
-      {isAddProductModalOpen && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white p-8 rounded-lg w-96">
-            <h2 className="text-xl font-semibold mb-4">Tambah Produk Baru</h2>
-            <form onSubmit={handleAddProduct}>
-              <div className="mb-4">
-                <label className="block text-sm font-medium">Nama Produk</label>
-                <input
-                  type="text"
-                  className="w-full p-2 border rounded-md"
+                  name="name"
                   value={newProduct.name}
-                  onChange={(e) =>
-                    setNewProduct({ ...newProduct, name: e.target.value })
-                  }
+                  onChange={handleInputChange}
+                  placeholder="Nama Produk"
+                  className="w-full p-2 mb-4 border rounded-md"
                 />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium">Harga</label>
                 <input
                   type="text"
-                  className="w-full p-2 border rounded-md"
+                  name="price"
                   value={newProduct.price}
-                  onChange={(e) =>
-                    setNewProduct({ ...newProduct, price: e.target.value })
-                  }
+                  onChange={handleInputChange}
+                  placeholder="Harga Produk"
+                  className="w-full p-2 mb-4 border rounded-md"
                 />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium">Jumlah</label>
                 <input
                   type="number"
-                  className="w-full p-2 border rounded-md"
+                  name="quantity"
                   value={newProduct.quantity}
-                  onChange={(e) =>
-                    setNewProduct({ ...newProduct, quantity: e.target.value })
-                  }
+                  onChange={handleInputChange}
+                  placeholder="Jumlah Produk"
+                  className="w-full p-2 mb-4 border rounded-md"
                 />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium">
-                  Tanggal Masuk
-                </label>
                 <input
                   type="date"
-                  className="w-full p-2 border rounded-md"
+                  name="entryDate"
                   value={newProduct.entryDate}
-                  onChange={(e) =>
-                    setNewProduct({ ...newProduct, entryDate: e.target.value })
-                  }
+                  onChange={handleInputChange}
+                  className="w-full p-2 mb-4 border rounded-md"
                 />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium">
-                  Tanggal Kadaluarsa
-                </label>
                 <input
                   type="date"
-                  className="w-full p-2 border rounded-md"
+                  name="expirationDate"
                   value={newProduct.expirationDate}
+                  onChange={handleInputChange}
+                  className="w-full p-2 mb-4 border rounded-md"
+                />
+                <div className="flex justify-between mt-4">
+                  <button
+                    onClick={handleAddProduct}
+                    className="bg-[#1ABC9C] text-white px-4 py-2 rounded-md hover:bg-[#16A085]"
+                  >
+                    Tambah Produk
+                  </button>
+                  <button
+                    onClick={() => setIsAddProductModalOpen(false)}
+                    className="bg-gray-400 text-white px-4 py-2 rounded-md hover:bg-gray-500"
+                  >
+                    Tutup
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Modal Edit Product */}
+          {isEditModalOpen && currentProduct && (
+            <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center">
+              <div className="bg-white p-8 rounded-lg w-96">
+                <h2 className="text-xl font-semibold mb-4">Edit Produk</h2>
+                <input
+                  type="text"
+                  value={currentProduct.name}
                   onChange={(e) =>
-                    setNewProduct({
-                      ...newProduct,
+                    setCurrentProduct({
+                      ...currentProduct,
+                      name: e.target.value,
+                    })
+                  }
+                  placeholder="Nama Produk"
+                  className="w-full p-2 mb-4 border rounded-md"
+                />
+                <input
+                  type="text"
+                  value={currentProduct.price}
+                  onChange={(e) =>
+                    setCurrentProduct({
+                      ...currentProduct,
+                      price: e.target.value,
+                    })
+                  }
+                  placeholder="Harga Produk"
+                  className="w-full p-2 mb-4 border rounded-md"
+                />
+                <input
+                  type="number"
+                  value={currentProduct.quantity}
+                  onChange={(e) =>
+                    setCurrentProduct({
+                      ...currentProduct,
+                      quantity: e.target.value,
+                    })
+                  }
+                  placeholder="Jumlah Produk"
+                  className="w-full p-2 mb-4 border rounded-md"
+                />
+                <input
+                  type="date"
+                  value={currentProduct.entryDate}
+                  onChange={(e) =>
+                    setCurrentProduct({
+                      ...currentProduct,
+                      entryDate: e.target.value,
+                    })
+                  }
+                  className="w-full p-2 mb-4 border rounded-md"
+                />
+                <input
+                  type="date"
+                  value={currentProduct.expirationDate}
+                  onChange={(e) =>
+                    setCurrentProduct({
+                      ...currentProduct,
                       expirationDate: e.target.value,
                     })
                   }
+                  className="w-full p-2 mb-4 border rounded-md"
                 />
+                <div className="flex justify-between mt-4">
+                  <button
+                    onClick={handleEditProduct}
+                    className="bg-[#1ABC9C] text-white px-4 py-2 rounded-md hover:bg-[#16A085]"
+                  >
+                    Simpan Perubahan
+                  </button>
+                  <button
+                    onClick={() => setIsEditModalOpen(false)}
+                    className="bg-gray-400 text-white px-4 py-2 rounded-md hover:bg-gray-500"
+                  >
+                    Tutup
+                  </button>
+                </div>
               </div>
-              <div className="flex justify-end gap-2">
-                <button
-                  onClick={() => setIsAddProductModalOpen(false)}
-                  className="bg-gray-500 text-white px-4 py-2 rounded-md"
-                >
-                  Tutup
-                </button>
-                <button
-                  type="submit"
-                  className="bg-[#1ABC9C] text-white px-4 py-2 rounded-md"
-                >
-                  Tambah
-                </button>
-              </div>
-            </form>
-          </div>
+            </div>
+          )}
         </div>
-      )}
-    </>
+      </div>
+    </div>
   );
 };
 
