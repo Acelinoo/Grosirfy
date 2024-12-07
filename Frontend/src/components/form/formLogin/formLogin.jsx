@@ -1,5 +1,30 @@
+import { useState } from "react";
 import { FcGoogle } from "react-icons/fc";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
+
 const LoginForm = () => {
+  const [email, setEmail] = useState("admin@gmail.com");
+  const [password, setPassword] = useState("");
+  const navigate = useNavigate(); // Inisialisasi navigasi
+
+  const handleLogin = (e) => {
+    e.preventDefault(); // Mencegah halaman reload
+    if (!email || !password) {
+      alert("Email atau password tidak boleh kosong!");
+      return;
+    }
+
+    const Username = "admin@gmail.com";
+    const Password = "123";
+
+    if (email === Username && password === Password) {
+      alert("Login berhasil!");
+      navigate("/");
+    } else {
+      alert("Email atau password salah!");
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-black bg-[url('/assets/bg.svg')] bg-center bg-cover">
       <div className="bg-gray-800 text-white p-8 rounded-lg shadow-lg max-w-md w-full justify-center">
@@ -8,7 +33,7 @@ const LoginForm = () => {
           Selamat datang kembali! login ke akun Anda di bawah ini
         </p>
 
-        <form className="space-y-4">
+        <form onSubmit={handleLogin} className="space-y-4">
           <div className="mt-6 text-center">
             <button className="mt-2 flex items-center justify-center w-full py-2 bg-gray-700 rounded-lg hover:bg-gray-600 transition">
               <FcGoogle className="mr-2 text-lg" /> Lanjutkan dengan Google
@@ -18,7 +43,10 @@ const LoginForm = () => {
             <label className="block text-sm mb-2">Email</label>
             <input
               type="email"
+              id="email"
               placeholder="masukkan email..."
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="w-full px-4 py-2 bg-gray-700 rounded-lg border border-gray-600 focus:ring focus:ring-teal-500 focus:outline-none"
             />
           </div>
@@ -27,7 +55,10 @@ const LoginForm = () => {
             <label className="block text-sm mb-2">Kata Sandi</label>
             <input
               type="password"
+              id="password"
               placeholder="masukkan kata sandi..."
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               className="w-full px-4 py-2 bg-gray-700 rounded-lg border border-gray-600 focus:ring focus:ring-teal-500 focus:outline-none"
             />
           </div>

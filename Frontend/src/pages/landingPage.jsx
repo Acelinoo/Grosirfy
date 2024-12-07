@@ -1,301 +1,343 @@
 import React, { useState, useEffect } from "react";
-import { PiPencilLineBold } from "react-icons/pi";
 import Navbar from "../components/navbar/navbar";
 import Sidebar from "../components/sideBar/sidebar";
+import Footer from "../components/footer/footer";
 
-// Main Component
 const Home = () => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [currentProduct, setCurrentProduct] = useState(null);
-  const [newProduct, setNewProduct] = useState({
-    name: "",
-    price: "",
-    quantity: 0,
-    entryDate: "",
-    expirationDate: "",
-  });
   const [products, setProducts] = useState([
     {
-      name: "Produk A",
-      price: "Rp50.000",
-      entryDate: "2024-11-30",
-      quantity: 3,
-      expirationDate: "2024-11-29",
+      id: 1,
+      name: "Beras",
+      category: "Makanan",
+      price: "50.000",
+      entryDate: "2024-12-01",
+      quantity: 10,
+      unit: "Kg",
+      expirationDate: "2025-01-15",
     },
     {
-      name: "Produk B",
-      price: "Rp30.000",
+      id: 2,
+      name: "Gula Pasir",
+      category: "Makanan",
+      price: "15.000",
       entryDate: "2024-12-01",
-      quantity: 6,
-      expirationDate: "2024-12-10",
+      quantity: 5,
+      unit: "Kg",
+      expirationDate: "2025-02-20",
+    },
+    {
+      id: 3,
+      name: "Minyak Goreng",
+      category: "Minuman",
+      price: "20.000",
+      entryDate: "2024-12-02",
+      quantity: 2,
+      unit: "Liter",
+      expirationDate: "2025-03-10",
     },
   ]);
 
-  // State for real-time date
-  const [currentDate, setCurrentDate] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newProduct, setNewProduct] = useState({
+    name: "",
+    category: "",
+    price: "",
+    entryDate: "",
+    quantity: "",
+    unit: "pcs",
+    expirationDate: "",
+  });
 
-  // Update date every second
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const now = new Date();
-      const formattedDate = now.toLocaleDateString("id-ID", {
-        weekday: "long", // full weekday name (e.g., "Senin")
-        day: "numeric", // day of the month (e.g., "2")
-        month: "long", // full month name (e.g., "Desember")
-        year: "numeric", // full year (e.g., "2024")
-      });
-      setCurrentDate(formattedDate);
-    }, 1000);
+  const [notifications, setNotifications] = useState([]);
 
-    return () => clearInterval(interval);
-  }, []);
+  // Date validation function
+  const isExpired = (expirationDate) => {
+    return new Date(expirationDate) < new Date();
+  };
+
+  const isLowStock = (quantity) => {
+    return quantity < 5;
+  };
+
+  // Filter products for low stock or expired
+  const getLowStockOrExpiredProducts = () => {
+    return products.filter((product) => 
+      isLowStock(product.quantity) || isExpired(product.expirationDate)
+    );
+  };
+
+  const handleCategoryChange = (e) => {
+    setSelectedCategory(e.target.value);
+  };
+
+  const handleModalOpen = () => setIsModalOpen(true);
+  const handleModalClose = () => {
+    setNewProduct({
+      name: "",
+      category: "",
+      price: "",
+      entryDate: "",
+      quantity: "",
+      unit: "pcs",
+      expirationDate: "",
+    });
+    setIsModalOpen(false);
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setNewProduct({ ...newProduct, [name]: value });
+    setNewProduct((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const handleAddProduct = () => {
-    setProducts([...products, newProduct]);
-    setNewProduct({
-      name: "",
-      price: "",
-      quantity: 0,
-      entryDate: "",
-      expirationDate: "",
-    });
-    setIsAddProductModalOpen(false);
+    if (
+      newProduct.name &&
+      newProduct.category &&
+      newProduct.price &&
+      newProduct.entryDate &&
+      newProduct.quantity &&
+      newProduct.unit &&
+      newProduct.expirationDate
+    ) {
+      setProducts((prev) => [
+        ...prev,
+        {
+          ...newProduct,
+          id: prev.length + 1,
+        },
+      ]);
+      handleModalClose();
+    } else {
+      alert("Harap isi semua kolom!");
+    }
   };
 
-  const handleEditProduct = () => {
-    const updatedProducts = [...products];
-    updatedProducts[currentProduct.index] = currentProduct;
-    setProducts(updatedProducts);
-    setIsEditModalOpen(false);
+  const handleEditProduct = (productId) => {
+    const productToEdit = products.find((prod) => prod.id === productId);
+    setNewProduct({ ...productToEdit });
+    setIsModalOpen(true);
   };
 
-  const handleEditClick = (index) => {
-    setCurrentProduct({ ...products[index], index });
-    setIsEditModalOpen(true);
+  const handleUpdateProduct = () => {
+    if (
+      newProduct.name &&
+      newProduct.category &&
+      newProduct.price &&
+      newProduct.entryDate &&
+      newProduct.quantity &&
+      newProduct.unit &&
+      newProduct.expirationDate
+    ) {
+      setProducts((prev) =>
+        prev.map((prod) =>
+          prod.id === newProduct.id ? { ...newProduct } : prod
+        )
+      );
+      handleModalClose();
+    } else {
+      alert("Harap isi semua kolom!");
+    }
+  };
+
+  const handleDeleteProduct = (productId) => {
+    if (window.confirm("Yakin ingin menghapus produk ini?")) {
+      setProducts((prev) => prev.filter((product) => product.id !== productId));
+    }
   };
 
   return (
-    <div className="">
-      {/* Sidebar Component */}
-      <Sidebar
-        isOpen={isSidebarOpen}
-        toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
-      />
-      <div>
-        <div
-          className={`p-6 bg-gray-100 min-h-screen ml-0 sm:ml-64 transition-all duration-300`}
-        >
-          <Navbar
-            toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
-            lowStockOrExpiredProducts={products.filter(
-              (product) =>
-                product.quantity <= 5 ||
-                new Date(product.expirationDate) <= new Date()
-            )}
-          />
-          <div className="bg-white shadow rounded-md p-4 flex justify-between items-center">
-            <div className="flex flex-col">
-              <h1 className="text-lg font-bold mb-2">Daftar Produk</h1>
-              {currentDate}
+    <>
+      <div className="bg-[#2F3A4B]">
+        <Navbar lowStockOrExpiredProducts={getLowStockOrExpiredProducts()} />
+      </div>
+      <div className="p-4 bg-gray-100 min-h-screen">
+        <Sidebar />
+        <div className="bg-white shadow-md ml-0 sm:ml-64 rounded-lg p-6 mb-4">
+          <div className="flex justify-between items-center">
+            <h1 className="text-2xl font-bold text-gray-800">Daftar Produk</h1>
+            <div className="flex gap-4 items-center">
+              <select
+                value={selectedCategory}
+                onChange={handleCategoryChange}
+                className="border px-4 py-2 rounded"
+              >
+                <option value="">Semua Kategori</option>
+                <option value="Makanan">Makanan</option>
+                <option value="Minuman">Minuman</option>
+                <option value="Lainnya">Lainnya</option>
+              </select>
+              <button
+                onClick={handleModalOpen}
+                className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600"
+              >
+                Tambah Produk
+              </button>
             </div>
-            {/* Real-time date/time display */}
-
-            <button
-              onClick={() => setIsAddProductModalOpen(true)}
-              className="bg-[#1ABC9C] text-white px-4 py-2 rounded-md hover:bg-[#16A085]"
-            >
-              Tambah Produk
-            </button>
           </div>
-          <table className="table-auto w-full text-sm text-left text-gray-500 mt-4">
-            <thead className="text-xs text-white uppercase bg-[#2F3A4B]">
+        </div>
+
+        <div className="bg-white shadow-md ml-0 sm:ml-64 rounded-lg overflow-x-auto">
+          <table className="table-auto w-full text-sm text-left">
+            <thead className="bg-gray-200">
               <tr>
-                <th className="px-6 py-3">Nama Produk</th>
-                <th className="px-6 py-3">Harga Barang</th>
-                <th className="px-6 py-3">Stok Barang</th>
-                <th className="px-6 py-3">Tanggal Masuk</th>
-                <th className="px-6 py-3">Tanggal Kadaluarsa</th>
-                <th className="px-6 py-3">Aksi</th>
+                <th className="px-4 py-2">No</th>
+                <th className="px-4 py-2">Nama Produk</th>
+                <th className="px-4 py-2">Kategori</th>
+                <th className="px-4 py-2">Harga</th>
+                <th className="px-4 py-2">Tanggal Masuk</th>
+                <th className="px-4 py-2">Jumlah</th>
+                <th className="px-4 py-2">Satuan</th>
+                <th className="px-4 py-2">Tanggal Kadaluarsa</th>
+                <th className="px-4 py-2">Aksi</th>
               </tr>
             </thead>
             <tbody>
-              {products.map((product, index) => (
-                <tr key={index} className="bg-white border-b">
-                  <td className="px-6 py-4">{product.name}</td>
-                  <td className="px-6 py-4">{product.price}</td>
-                  <td
-                    className={`px-6 py-4 ${
-                      product.quantity <= 5 ? "text-red-500" : "text-green-500"
-                    }`}
+              {products
+                .filter(
+                  (product) =>
+                    !selectedCategory || product.category === selectedCategory
+                )
+                .map((product, index) => (
+                  <tr
+                    key={product.id}
+                    className={`${
+                      index % 2 === 0 ? "bg-gray-50" : "bg-white"
+                    } border-b`}
                   >
-                    {product.quantity}
-                  </td>
-                  <td className="px-6 py-4">{product.entryDate}</td>
-                  <td className="px-6 py-4">{product.expirationDate}</td>
-                  <td className="px-6 py-4">
-                    <button
-                      onClick={() => handleEditClick(index)}
-                      className="text-[#1ABC9C] hover:text-[#16A085]"
+                    <td className="px-4 py-2">{index + 1}</td>
+                    <td className="px-4 py-2">{product.name}</td>
+                    <td className="px-4 py-2">{product.category}</td>
+                    <td className="px-4 py-2">Rp {product.price}</td>
+                    <td className="px-4 py-2">{product.entryDate}</td>
+                    <td className="px-4 py-2">
+                      <span
+                        className={`${
+                          isLowStock(product.quantity) ? "text-red-500" : ""
+                        }`}
+                      >
+                        {product.quantity}
+                      </span>
+                    </td>
+                    <td className="px-4 py-2">{product.unit}</td>
+                    <td
+                      className={`px-4 py-2 ${
+                        isExpired(product.expirationDate) ? "text-red-500" : ""
+                      }`}
                     >
-                      <PiPencilLineBold size={16} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
+                      {product.expirationDate}
+                    </td>
+                    <td className="px-4 py-2 flex gap-2">
+                      <button
+                        onClick={() => handleEditProduct(product.id)}
+                        className="text-blue-500 hover:text-blue-700"
+                      >
+                        ✏️
+                      </button>
+                      <button
+                        onClick={() => handleDeleteProduct(product.id)}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        🗑️
+                      </button>
+                    </td>
+                  </tr>
+                ))}
             </tbody>
           </table>
+        </div>
 
-          {/* Modal Add Product */}
-          {isAddProductModalOpen && (
-            <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center">
-              <div className="bg-white p-8 rounded-lg w-96">
-                <h2 className="text-xl font-semibold mb-4">Tambah Produk</h2>
+        {/* Modal Tambah/Edit Produk */}
+        {isModalOpen && (
+          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+              <h2 className="text-xl font-semibold mb-4">Tambah/Edit Produk</h2>
+              <form className="space-y-4">
                 <input
                   type="text"
                   name="name"
                   value={newProduct.name}
                   onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md"
                   placeholder="Nama Produk"
-                  className="w-full p-2 mb-4 border rounded-md"
                 />
+                <select
+                  name="category"
+                  value={newProduct.category}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md"
+                >
+                  <option value="">Pilih Kategori</option>
+                  <option value="Makanan">Makanan</option>
+                  <option value="Minuman">Minuman</option>
+                  <option value="Lainnya">Lainnya</option>
+                </select>
                 <input
                   type="text"
                   name="price"
                   value={newProduct.price}
                   onChange={handleInputChange}
-                  placeholder="Harga Produk"
-                  className="w-full p-2 mb-4 border rounded-md"
-                />
-                <input
-                  type="number"
-                  name="quantity"
-                  value={newProduct.quantity}
-                  onChange={handleInputChange}
-                  placeholder="Jumlah Produk"
-                  className="w-full p-2 mb-4 border rounded-md"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md"
+                  placeholder="Harga"
                 />
                 <input
                   type="date"
                   name="entryDate"
                   value={newProduct.entryDate}
                   onChange={handleInputChange}
-                  className="w-full p-2 mb-4 border rounded-md"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md"
                 />
+                <input
+                  type="number"
+                  name="quantity"
+                  value={newProduct.quantity}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md"
+                  placeholder="Jumlah"
+                />
+                <select
+                  name="unit"
+                  value={newProduct.unit}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md"
+                >
+                  <option value="pcs">Pcs</option>
+                  <option value="kg">Kg</option>
+                  <option value="liter">Liter</option>
+                </select>
                 <input
                   type="date"
                   name="expirationDate"
                   value={newProduct.expirationDate}
                   onChange={handleInputChange}
-                  className="w-full p-2 mb-4 border rounded-md"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md"
                 />
-                <div className="flex justify-between mt-4">
+                <div className="flex justify-between gap-4">
                   <button
+                    type="button"
+                    onClick={handleModalClose}
+                    className="px-4 py-2 bg-gray-400 text-white rounded-md hover:bg-gray-500"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="button"
                     onClick={handleAddProduct}
-                    className="bg-[#1ABC9C] text-white px-4 py-2 rounded-md hover:bg-[#16A085]"
+                    className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
                   >
-                    Tambah Produk
-                  </button>
-                  <button
-                    onClick={() => setIsAddProductModalOpen(false)}
-                    className="bg-gray-400 text-white px-4 py-2 rounded-md hover:bg-gray-500"
-                  >
-                    Tutup
+                    Simpan
                   </button>
                 </div>
-              </div>
+              </form>
             </div>
-          )}
-
-          {/* Modal Edit Product */}
-          {isEditModalOpen && currentProduct && (
-            <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center">
-              <div className="bg-white p-8 rounded-lg w-96">
-                <h2 className="text-xl font-semibold mb-4">Edit Produk</h2>
-                <input
-                  type="text"
-                  value={currentProduct.name}
-                  onChange={(e) =>
-                    setCurrentProduct({
-                      ...currentProduct,
-                      name: e.target.value,
-                    })
-                  }
-                  placeholder="Nama Produk"
-                  className="w-full p-2 mb-4 border rounded-md"
-                />
-                <input
-                  type="text"
-                  value={currentProduct.price}
-                  onChange={(e) =>
-                    setCurrentProduct({
-                      ...currentProduct,
-                      price: e.target.value,
-                    })
-                  }
-                  placeholder="Harga Produk"
-                  className="w-full p-2 mb-4 border rounded-md"
-                />
-                <input
-                  type="number"
-                  value={currentProduct.quantity}
-                  onChange={(e) =>
-                    setCurrentProduct({
-                      ...currentProduct,
-                      quantity: e.target.value,
-                    })
-                  }
-                  placeholder="Jumlah Produk"
-                  className="w-full p-2 mb-4 border rounded-md"
-                />
-                <input
-                  type="date"
-                  value={currentProduct.entryDate}
-                  onChange={(e) =>
-                    setCurrentProduct({
-                      ...currentProduct,
-                      entryDate: e.target.value,
-                    })
-                  }
-                  className="w-full p-2 mb-4 border rounded-md"
-                />
-                <input
-                  type="date"
-                  value={currentProduct.expirationDate}
-                  onChange={(e) =>
-                    setCurrentProduct({
-                      ...currentProduct,
-                      expirationDate: e.target.value,
-                    })
-                  }
-                  className="w-full p-2 mb-4 border rounded-md"
-                />
-                <div className="flex justify-between mt-4">
-                  <button
-                    onClick={handleEditProduct}
-                    className="bg-[#1ABC9C] text-white px-4 py-2 rounded-md hover:bg-[#16A085]"
-                  >
-                    Simpan Perubahan
-                  </button>
-                  <button
-                    onClick={() => setIsEditModalOpen(false)}
-                    className="bg-gray-400 text-white px-4 py-2 rounded-md hover:bg-gray-500"
-                  >
-                    Tutup
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
-    </div>
+      <Footer />
+    </>
   );
 };
 

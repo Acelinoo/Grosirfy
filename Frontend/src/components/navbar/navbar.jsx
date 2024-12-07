@@ -1,12 +1,20 @@
 import React, { useState } from "react";
 import { IoIosNotificationsOutline } from "react-icons/io";
 import { RiSearch2Line } from "react-icons/ri";
+import { useNavigate } from "react-router-dom";
 
-const Navbar = ({ lowStockOrExpiredProducts }) => {
+const Navbar = ({ lowStockOrExpiredProducts = [] }) => {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const navigate = useNavigate();
+
+  // Handle Logout
+  const handleLogout = () => {
+    localStorage.removeItem("authToken");
+    navigate("/login");
+  };
 
   return (
-    <div className="flex items-center justify-between p-4 bg-transparent mb-5">
+    <div className="flex items-center justify-between ml-0 sm:ml-64 p-4 bg-[#2F3A4B] mb-5">
       {/* Search Bar */}
       <div className="flex items-center w-full max-w-lg">
         <input
@@ -14,18 +22,24 @@ const Navbar = ({ lowStockOrExpiredProducts }) => {
           placeholder="Cari sesuatu..."
           className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none"
         />
-        <RiSearch2Line className="ml-2 text-gray-500" />
+        <RiSearch2Line className="ml-2 text-white" />
       </div>
 
       {/* Notification Button */}
-      <div className="relative">
+      <div className="relative flex">
         <button
           onClick={() => setIsNotificationOpen(true)}
-          className={`flex items-center gap-2 px-3 py-2 rounded-xl text-white ${
-            lowStockOrExpiredProducts.length > 0 ? "bg-red-500" : "bg-[#1ABC9C]"
+          className={`flex items-center justify-center mr-5 p-2 rounded-full text-white focus:outline-none transition ${
+            lowStockOrExpiredProducts?.length > 0 ? "bg-red-500" : "bg-[#1ABC9C]"
           } hover:bg-[#16A085]`}
         >
-          <IoIosNotificationsOutline size={20} />
+          <IoIosNotificationsOutline size={24} />
+        </button>
+        <button
+          onClick={handleLogout}
+          className="flex items-center justify-center p-2  rounded-[5px] text-white bg-red-600 hover:bg-red-700 transition"
+        >
+          Logout
         </button>
       </div>
 
@@ -37,7 +51,7 @@ const Navbar = ({ lowStockOrExpiredProducts }) => {
               Notifikasi Produk
             </h2>
             <ul className="text-gray-700">
-              {lowStockOrExpiredProducts.length > 0 ? (
+              {lowStockOrExpiredProducts?.length > 0 ? (
                 lowStockOrExpiredProducts.map((product, index) => (
                   <li key={index} className="mb-2">
                     <span className="font-semibold">{product.name}</span>:{" "}
@@ -49,7 +63,8 @@ const Navbar = ({ lowStockOrExpiredProducts }) => {
                           : "text-green-500"
                       }`}
                     >
-                      Kadaluarsa pada {new Date(product.expirationDate).toLocaleDateString()}
+                      Kadaluarsa pada{" "}
+                      {new Date(product.expirationDate).toLocaleDateString()}
                     </span>
                   </li>
                 ))
