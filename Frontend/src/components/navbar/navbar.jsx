@@ -2,9 +2,11 @@ import React, { useState } from "react";
 import { IoIosNotificationsOutline } from "react-icons/io";
 import { RiSearch2Line } from "react-icons/ri";
 import { useNavigate } from "react-router-dom";
+import { VscAccount } from "react-icons/vsc";
 
 const Navbar = ({ lowStockOrExpiredProducts = [] }) => {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const navigate = useNavigate();
 
   // Handle Logout
@@ -13,8 +15,13 @@ const Navbar = ({ lowStockOrExpiredProducts = [] }) => {
     navigate("/login");
   };
 
+  // Handle profile
+  const handleProfile = () => {
+    navigate("/profile");
+  };
+
   return (
-    <div className="flex items-center justify-between ml-0 sm:ml-64 p-4 bg-[#2F3A4B] mb-5">
+    <div className="flex items-center justify-between h-[100px] ml-0 sm:ml-64 p-4 bg-[#2F3A4B] mb-5">
       {/* Search Bar */}
       <div className="flex items-center w-full max-w-lg">
         <input
@@ -26,21 +33,52 @@ const Navbar = ({ lowStockOrExpiredProducts = [] }) => {
       </div>
 
       {/* Notification Button */}
-      <div className="relative flex">
+      <div className="relative flex items-center">
         <button
           onClick={() => setIsNotificationOpen(true)}
           className={`flex items-center justify-center mr-5 p-2 rounded-full text-white focus:outline-none transition ${
-            lowStockOrExpiredProducts?.length > 0 ? "bg-red-500" : "bg-[#1ABC9C]"
+            lowStockOrExpiredProducts?.length > 0
+              ? "bg-red-500"
+              : "bg-[#1ABC9C]"
           } hover:bg-[#16A085]`}
         >
           <IoIosNotificationsOutline size={24} />
         </button>
-        <button
-          onClick={handleLogout}
-          className="flex items-center justify-center p-2  rounded-[5px] text-white bg-red-600 hover:bg-red-700 transition"
-        >
-          Logout
-        </button>
+
+        {/* Profile Dropdown */}
+        <div className="relative">
+  <button
+    onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+    className="flex items-center text-2xl justify-center p-2 rounded-[5px] bg-[#1ABC9C] hover:bg-[#16A085] text-white focus:outline-none transition"
+  >
+    <VscAccount />
+  </button>
+  {isProfileDropdownOpen && (
+    <div
+      className="absolute right-0 mt-2 w-40 bg-white rounded-md shadow-lg z-50"
+      style={{ top: "calc(100% + 0.5rem)" }} // Pastikan dropdown muncul di bawah tombol
+    >
+      <ul className="py-2 text-gray-700">
+        <li>
+          <button
+            onClick={handleProfile}
+            className="w-full text-left px-4 py-2 hover:bg-gray-100"
+          >
+            Profil
+          </button>
+        </li>
+        <li>
+          <button
+            onClick={handleLogout}
+            className="w-full text-left px-4 py-2 hover:bg-gray-100"
+          >
+            Logout
+          </button>
+        </li>
+      </ul>
+    </div>
+  )}
+</div>
       </div>
 
       {/* Notification Modal */}

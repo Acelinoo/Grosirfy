@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Navbar from "../components/navbar/navbar";
 import Sidebar from "../components/sideBar/sidebar";
 import Footer from "../components/footer/footer";
+import { MdOutlineLogin } from "react-icons/md";
 
 const Home = () => {
   const [products, setProducts] = useState([
@@ -149,6 +150,24 @@ const Home = () => {
     }
   };
 
+  // Handle stock update (decrease stock by 1)
+  const handleDecreaseStock = (productId) => {
+    const productToUpdate = products.find((prod) => prod.id === productId);
+    
+    if (productToUpdate && productToUpdate.quantity > 0) {
+      const updatedProduct = { 
+        ...productToUpdate, 
+        quantity: productToUpdate.quantity - 1 
+      };
+      
+      setProducts((prev) =>
+        prev.map((prod) =>
+          prod.id === productId ? updatedProduct : prod
+        )
+      );
+    }
+  };
+
   return (
     <>
       <div className="bg-[#2F3A4B]">
@@ -232,6 +251,12 @@ const Home = () => {
                     </td>
                     <td className="px-4 py-2 flex gap-2">
                       <button
+                        onClick={() => handleDecreaseStock(product.id)}
+                        className="text-blue-500 hover:text-blue-700"
+                      >
+                        <MdOutlineLogin />
+                      </button>
+                      <button
                         onClick={() => handleEditProduct(product.id)}
                         className="text-blue-500 hover:text-blue-700"
                       >
@@ -249,94 +274,124 @@ const Home = () => {
             </tbody>
           </table>
         </div>
+      </div>
 
-        {/* Modal Tambah/Edit Produk */}
-        {isModalOpen && (
-          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-              <h2 className="text-xl font-semibold mb-4">Tambah/Edit Produk</h2>
-              <form className="space-y-4">
-                <input
-                  type="text"
-                  name="name"
-                  value={newProduct.name}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md"
-                  placeholder="Nama Produk"
-                />
-                <select
-                  name="category"
-                  value={newProduct.category}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md"
-                >
-                  <option value="">Pilih Kategori</option>
-                  <option value="Makanan">Makanan</option>
-                  <option value="Minuman">Minuman</option>
-                  <option value="Lainnya">Lainnya</option>
-                </select>
-                <input
-                  type="text"
-                  name="price"
-                  value={newProduct.price}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md"
-                  placeholder="Harga"
-                />
-                <input
-                  type="date"
-                  name="entryDate"
-                  value={newProduct.entryDate}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md"
-                />
-                <input
-                  type="number"
-                  name="quantity"
-                  value={newProduct.quantity}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md"
-                  placeholder="Jumlah"
-                />
-                <select
-                  name="unit"
-                  value={newProduct.unit}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md"
-                >
-                  <option value="pcs">Pcs</option>
-                  <option value="kg">Kg</option>
-                  <option value="liter">Liter</option>
-                </select>
-                <input
-                  type="date"
-                  name="expirationDate"
-                  value={newProduct.expirationDate}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md"
-                />
-                <div className="flex justify-between gap-4">
-                  <button
-                    type="button"
-                    onClick={handleModalClose}
-                    className="px-4 py-2 bg-gray-400 text-white rounded-md hover:bg-gray-500"
-                  >
-                    Batal
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleAddProduct}
-                    className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
-                  >
-                    Simpan
-                  </button>
-                </div>
-              </form>
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+          <div className="bg-white p-6 rounded-lg w-1/2">
+            <h2 className="text-xl font-bold mb-4">Tambah / Edit Produk</h2>
+            <div className="mb-4">
+              <label htmlFor="name" className="block text-sm font-medium">
+                Nama Produk
+              </label>
+              <input
+                type="text"
+                name="name"
+                id="name"
+                value={newProduct.name}
+                onChange={handleInputChange}
+                className="w-full border px-4 py-2 rounded"
+              />
+            </div>
+            <div className="mb-4">
+              <label htmlFor="category" className="block text-sm font-medium">
+                Kategori
+              </label>
+              <input
+                type="text"
+                name="category"
+                id="category"
+                value={newProduct.category}
+                onChange={handleInputChange}
+                className="w-full border px-4 py-2 rounded"
+              />
+            </div>
+            <div className="mb-4">
+              <label htmlFor="price" className="block text-sm font-medium">
+                Harga
+              </label>
+              <input
+                type="number"
+                name="price"
+                id="price"
+                value={newProduct.price}
+                onChange={handleInputChange}
+                className="w-full border px-4 py-2 rounded"
+              />
+            </div>
+            <div className="mb-4">
+              <label htmlFor="entryDate" className="block text-sm font-medium">
+                Tanggal Masuk
+              </label>
+              <input
+                type="date"
+                name="entryDate"
+                id="entryDate"
+                value={newProduct.entryDate}
+                onChange={handleInputChange}
+                className="w-full border px-4 py-2 rounded"
+              />
+            </div>
+            <div className="mb-4">
+              <label htmlFor="quantity" className="block text-sm font-medium">
+                Jumlah
+              </label>
+              <input
+                type="number"
+                name="quantity"
+                id="quantity"
+                value={newProduct.quantity}
+                onChange={handleInputChange}
+                className="w-full border px-4 py-2 rounded"
+              />
+            </div>
+            <div className="mb-4">
+              <label htmlFor="unit" className="block text-sm font-medium">
+                Satuan
+              </label>
+              <select
+                name="unit"
+                id="unit"
+                value={newProduct.unit}
+                onChange={handleInputChange}
+                className="w-full border px-4 py-2 rounded"
+              >
+                <option value="pcs">PCS</option>
+                <option value="kg">Kg</option>
+                <option value="liter">Liter</option>
+                <option value="dus">Dus</option>
+              </select>
+            </div>
+            <div className="mb-4">
+              <label htmlFor="expirationDate" className="block text-sm font-medium">
+                Tanggal Kadaluarsa
+              </label>
+              <input
+                type="date"
+                name="expirationDate"
+                id="expirationDate"
+                value={newProduct.expirationDate}
+                onChange={handleInputChange}
+                className="w-full border px-4 py-2 rounded"
+              />
+            </div>
+            <div className="flex gap-4 justify-end">
+              <button
+                onClick={handleModalClose}
+                className="bg-gray-500 text-white px-4 py-2 rounded"
+              >
+                Batal
+              </button>
+              <button
+                onClick={newProduct.id ? handleUpdateProduct : handleAddProduct}
+                className="bg-blue-500 text-white px-4 py-2 rounded"
+              >
+                {newProduct.id ? "Update Produk" : "Tambah Produk"}
+              </button>
             </div>
           </div>
-        )}
-      </div>
-      <Footer />
+        </div>
+      )}
     </>
   );
 };
