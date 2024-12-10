@@ -1,67 +1,70 @@
 import { useState } from "react";
-import { FcGoogle } from "react-icons/fc";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useNavigate } from "react-router-dom";
+import Axios from "axios";
 
 const LoginForm = () => {
-  const [email, setEmail] = useState("admin@gmail.com");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const navigate = useNavigate(); // Inisialisasi navigasi
+  const [message, setMessage] = useState("");
+  const navigate = useNavigate();
 
-  const handleLogin = (e) => {
-    e.preventDefault(); // Mencegah halaman reload
-    if (!email || !password) {
-      alert("Email atau password tidak boleh kosong!");
-      return;
-    }
-
-    const Username = "admin@gmail.com";
-    const Password = "123";
-
-    if (email === Username && password === Password) {
-      alert("Login berhasil!");
-      navigate("/");
-    } else {
-      alert("Email atau password salah!");
+  // Fungsi untuk menangani login form submit 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+  
+    try {
+      const response = await Axios.post("http://127.0.0.1:8000/api/login", {
+        email,
+        password,
+      });
+  
+      if (response.status === 200) {
+        setMessage("Login berhasil!");
+        console.log(response)
+  
+        localStorage.setItem('authToken', response?.data?.token);
+        console.log('authToken', response?.data?.token);
+  
+        navigate("/profile");
+      } else {
+        setMessage("Login gagal: " + response?.data?.message);
+      }
+    } catch (error) {
+      console.error("Error during login:", error);
+      setMessage("Login gagal!");
     }
   };
+  
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-black bg-[url('/assets/bg.svg')] bg-center bg-cover">
-      <div className="bg-gray-800 text-white p-8 rounded-lg shadow-lg max-w-md w-full justify-center">
+      <div className="bg-gray-800 text-white p-8 rounded-lg shadow-lg max-w-md w-full">
         <h1 className="text-2xl font-bold mb-4 text-center">Grosirfy</h1>
-        <p className="mx-auto text-center mb-6 w-60">
-          Selamat datang kembali! login ke akun Anda di bawah ini
-        </p>
+        <p className="text-center mb-6">Masuk untuk melanjutkan!</p>
 
-        <form onSubmit={handleLogin} className="space-y-4">
-          <div className="mt-6 text-center">
-            <button className="mt-2 flex items-center justify-center w-full py-2 bg-gray-700 rounded-lg hover:bg-gray-600 transition">
-              <FcGoogle className="mr-2 text-lg" /> Lanjutkan dengan Google
-            </button>
-          </div>
+        {/* Form Login */}
+        <form className="space-y-4" onSubmit={handleSubmit}>
           <div>
             <label className="block text-sm mb-2">Email</label>
             <input
               type="email"
-              id="email"
-              placeholder="masukkan email..."
+              placeholder="Masukkan email..."
+              className="w-full px-4 py-2 bg-gray-700 rounded-lg border border-gray-600 focus:ring focus:ring-teal-500 focus:outline-none"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2 bg-gray-700 rounded-lg border border-gray-600 focus:ring focus:ring-teal-500 focus:outline-none"
             />
           </div>
-
           <div>
             <label className="block text-sm mb-2">Kata Sandi</label>
             <input
               type="password"
-              id="password"
-              placeholder="masukkan kata sandi..."
+              placeholder="Masukkan kata sandi..."
+              className="w-full px-4 py-2 bg-gray-700 rounded-lg border border-gray-600 focus:ring focus:ring-teal-500 focus:outline-none"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 bg-gray-700 rounded-lg border border-gray-600 focus:ring focus:ring-teal-500 focus:outline-none"
             />
           </div>
+
           <button
             type="submit"
             className="w-full py-2 bg-teal-500 rounded-lg text-white font-bold hover:bg-teal-600 transition"
@@ -70,12 +73,15 @@ const LoginForm = () => {
           </button>
         </form>
 
-        <p className="mt-4 text-center text-gray-400">
-          Tidak punya akun?{" "}
+        {/* Tampilkan pesan dari backend */}
+        {message && <p className="mt-4 text-center text-gray-400">{message}</p>}
+
+        <div className="mt-6 text-center">
+          <p className="text-gray-400">Belum punya akun?</p>
           <a href="/daftar" className="text-teal-500 hover:underline">
             Daftar
           </a>
-        </p>
+        </div>
       </div>
     </div>
   );

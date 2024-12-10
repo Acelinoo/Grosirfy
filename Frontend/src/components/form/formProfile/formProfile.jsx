@@ -1,32 +1,119 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FiEdit } from 'react-icons/fi';
+import Axios from 'axios';
 
 const ProfileEditForm = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
-    fullName: 'John Doe',
-    phone: '123456789',
-    email: 'john.doe@example.com',
-    password: 'password123',
+    name: '',
+    phone: '',
+    email: '',
+    password: '',
   });
+  const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState('');
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const token = localStorage.getItem('authToken');
+        console.log('Token yang digunakan: ', token);
+  
+        if (!token) {
+          setMessage('Token tidak tersedia, silakan login kembali.');
+          setLoading(false);
+          return;
+        }
+  
+        const response = await Axios.get('http://127.0.0.1:8000/api/profile', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          withCredentials: true,
+        });
+  
+        console.log('Response dari server: ', response.data);
+  
+        if (!response.data) {
+          setMessage('Response tidak valid');
+          return;
+        }
+  
+        const { name, email } = response.data;
+  
+        console.log('Nama dan email dari server: ', name, email);
+  
+        // Perbarui formData
+        setFormData({
+          name: name ?? '',
+          phone: '', 
+          email: email ?? '',
+          password: '',
+        });
+  
+        setIsEditing(false);
+        setMessage('');
+      } catch (error) {
+        console.error('Error saat mengambil profil:', error.response);
+        setMessage('Terjadi kesalahan saat memuat profil');
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    fetchProfile();
+  }, []);
+  
+  
+  
+  
+  console.log('State formData sebelum render: ', formData);
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleSave = () => {
-    console.log('Data saved:', formData);
-    setIsEditing(false);
+  const handleSave = async () => {
+    try {
+      const response = await Axios.put(
+        'http://127.0.0.1:8000/api/profile',
+        {
+          name: formData.name,
+          phone: formData.phone,
+          email: formData.email,
+          password: formData.password || undefined, // Only send password if it is updated
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('authToken')}`,
+          },
+        }
+      );
+
+      setMessage(response.data.message || 'Profile updated successfully.');
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      setMessage(
+        error.response?.data?.message || 'Failed to update profile. Please try again.'
+      );
+    }
   };
 
   const handleCancel = () => {
     setIsEditing(false);
+    setMessage('');
   };
 
   const handleEditClick = () => {
     setIsEditing(true);
   };
+
+  if (loading) {
+    return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
+  }
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
@@ -49,34 +136,22 @@ const ProfileEditForm = () => {
           {/* Full Name */}
           <div>
             <p className="text-sm">Full Name</p>
+
             {isEditing ? (
               <input
                 type="text"
-                name="fullName"
-                value={formData.fullName}
+                name="name"
+                value={formData.name}
                 onChange={handleChange}
                 className="w-full px-4 py-2 text-black rounded-md focus:outline-none"
               />
             ) : (
-              <p className="text-lg font-medium">{formData.fullName}</p>
+              <p className="text-lg font-medium">{formData.name}</p>
             )}
           </div>
 
           {/* Phone Number */}
-          <div>
-            <p className="text-sm">Phone Number</p>
-            {isEditing ? (
-              <input
-                type="text"
-                name="phone"
-                value={formData.phone}
-                onChange={handleChange}
-                className="w-full px-4 py-2 text-black rounded-md focus:outline-none"
-              />
-            ) : (
-              <p className="text-lg font-medium">{formData.phone}</p>
-            )}
-          </div>
+
 
           {/* Email */}
           <div>
@@ -106,7 +181,7 @@ const ProfileEditForm = () => {
                 className="w-full px-4 py-2 text-black rounded-md focus:outline-none"
               />
             ) : (
-              <p className="text-lg font-medium">{formData.password}</p>
+              <p className="text-lg font-medium">********</p>
             )}
           </div>
         </div>
@@ -128,6 +203,9 @@ const ProfileEditForm = () => {
             </button>
           </div>
         )}
+
+        {/* Message */}
+        {message && <p className="mt-4 text-center text-yellow-400">{message}</p>}
       </div>
     </div>
   );

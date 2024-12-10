@@ -15,10 +15,10 @@ const App = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/daftar" element={<DaftarPage />} />
         <Route path="/profile" element={<ProfilePage />} />
-        <Route
+        {/* <Route
           path="/riwayat-pengisian"
           element={<RiwayatPengisianStock historyData={historyData} />}
-        />
+        /> */}
       </Routes>
     </Router>
   );

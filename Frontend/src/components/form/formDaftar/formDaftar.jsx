@@ -1,6 +1,49 @@
 import { FcGoogle } from "react-icons/fc";
+import { useState } from "react";
+import Axios from "axios";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 
 const DaftarForm = () => {
+  // State untuk menyimpan input form
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [password_confirmation, setPasswordConfirmation] = useState(""); // Memperbaiki setter
+  const [message, setMessage] = useState(""); // Menyimpan pesan dari backend
+
+  const navigate = useNavigate(); // Initialize useNavigate hook
+
+  // Fungsi untuk handle submit form
+  const handleSubmit = async (e) => {
+    e.preventDefault(); // Mencegah reload halaman
+
+    try {
+      const response = await Axios.post(
+        "http://127.0.0.1:8000/api/register",
+        {
+          name,
+          email,
+          password,
+          password_confirmation,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json", // Pastikan ini ada
+          },
+        }
+      );
+  
+      setMessage(response.data.message);
+  
+      if (response.data.success) {
+        navigate("/profile");
+      }
+    } catch (error) {
+      console.error("Error during registration:", error);
+      setMessage("Terjadi kesalahan saat pendaftaran.");
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-black bg-[url('/assets/bg.svg')] bg-center bg-cover">
       <div className="bg-gray-800 text-white p-8 rounded-lg shadow-lg max-w-md w-full">
@@ -9,13 +52,15 @@ const DaftarForm = () => {
           Gabung sekarang dan nikmati semua fitur kami!
         </p>
 
-        <form className="space-y-4">
+        <form className="space-y-4" onSubmit={handleSubmit}>
           <div>
             <label className="block text-sm mb-2">Nama Lengkap</label>
             <input
               type="text"
               placeholder="masukkan nama..."
               className="w-full px-4 py-2 bg-gray-700 rounded-lg border border-gray-600 focus:ring focus:ring-teal-500 focus:outline-none"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
             />
           </div>
           <div>
@@ -24,22 +69,38 @@ const DaftarForm = () => {
               type="email"
               placeholder="masukkan email..."
               className="w-full px-4 py-2 bg-gray-700 rounded-lg border border-gray-600 focus:ring focus:ring-teal-500 focus:outline-none"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
             />
           </div>
-          <div>
+            {/* <div>
             <label className="block text-sm mb-2">Nomor Telepon</label>
             <input
               type="text"
               placeholder="masukkan nomor telepon..."
               className="w-full px-4 py-2 bg-gray-700 rounded-lg border border-gray-600 focus:ring focus:ring-teal-500 focus:outline-none"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
             />
-          </div>
+          </div> */}
           <div>
             <label className="block text-sm mb-2">Kata Sandi</label>
             <input
               type="password"
               placeholder="masukkan kata sandi..."
               className="w-full px-4 py-2 bg-gray-700 rounded-lg border border-gray-600 focus:ring focus:ring-teal-500 focus:outline-none"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="block text-sm mb-2">Konfirmasi Kata Sandi</label>
+            <input
+              type="password"
+              placeholder="masukkan kata sandi..."
+              className="w-full px-4 py-2 bg-gray-700 rounded-lg border border-gray-600 focus:ring focus:ring-teal-500 focus:outline-none"
+              value={password_confirmation}
+              onChange={(e) => setPasswordConfirmation(e.target.value)}
             />
           </div>
           <button
@@ -49,6 +110,9 @@ const DaftarForm = () => {
             Daftar
           </button>
         </form>
+
+        {/* Tampilkan pesan dari backend */}
+        {message && <p className="mt-4 text-center text-gray-400">{message}</p>}
 
         <div className="mt-6 text-center">
           <p className="text-gray-400">Atau</p>
